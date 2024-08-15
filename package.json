@@ -1,6 +1,6 @@
 {
-  "name": "validate-express-req-body-v2",
-  "version": "2.4.0",
+  "name": "validate-express-req-body",
+  "version": "1.1.0",
   "description": "Middleware to validate the request body based on provided validation rules",
   "main": "dist/index.js",
   "module": "dist/index.js",
@@ -22,9 +22,9 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/sirilmp/validate-request-body.git"
+    "url": "https://github.com/sirilmp/validate-express-req-body"
   },
-  "homepage": "https://github.com/sirilmp/validate-request-body.git",
+  "homepage": "https://github.com/sirilmp/validate-express-req-body",
   "keywords": [
     "middleware",
     "express",

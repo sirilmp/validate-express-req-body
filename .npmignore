@@ -4,3 +4,4 @@ src/
 *.d.ts
 tsconfig.json
 jest.config.js
+.github/

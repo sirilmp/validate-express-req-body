@@ -1,0 +1,6 @@
+src/
+*.ts
+*.map
+*.d.ts
+tsconfig.json
+jest.config.js

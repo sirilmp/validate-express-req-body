@@ -1,0 +1,51 @@
+{
+  "name": "validate-express-req-body-v2",
+  "version": "2.4.0",
+  "description": "Middleware to validate the request body based on provided validation rules",
+  "main": "dist/index.js",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "test": "jest",
+    "build": "tsc && npm run build:cjs && npm run build:mjs && node src/utils/rename-to-mjs.js && node src/utils/convert-exports.js",
+    "build:cjs": "tsc --module CommonJS --outDir dist/cjs",
+    "build:mjs": "tsc --module ES6 --outDir dist/mjs"
+  },
+  "exports": {
+    ".": {
+      "import": "./dist/mjs/index.mjs",
+      "require": "./dist/cjs/index.js",
+      "default": "./dist/cjs/index.js"
+    },
+    "./package.json": "./package.json",
+    "./constants": "./dist/mjs/constants/index.mjs"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sirilmp/validate-request-body.git"
+  },
+  "homepage": "https://github.com/sirilmp/validate-request-body.git",
+  "keywords": [
+    "middleware",
+    "express",
+    "validation",
+    "body"
+  ],
+  "author": {
+    "name": "Siril M Philip",
+    "email": "sirilmp.online@gmail.com",
+    "url": "sirilmphilip.online"
+  },
+  "license": "ISC",
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/jest": "^29.5.12",
+    "@types/node": "^22.3.0",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.2.4",
+    "typescript": "^5.5.4"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}

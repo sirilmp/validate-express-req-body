@@ -22,12 +22,11 @@ const validateRequestBody = (rules) => {
         }
         rules.forEach((rule) => {
             const { key, type, required = false, min, max, regex, customValidator, } = rule;
-            // Validate the type
             if (!ALLOWED_TYPES.includes(type)) {
                 errors.push(`${type} is not a valid type. Allowed types are ${ALLOWED_TYPES}`);
                 return;
             }
-            const value = req === null || req === void 0 ? void 0 : req.body[key];
+            const value = getValueFromNestedObject(req.body, key);
             if (required && !isPresent(value)) {
                 errors.push(`${key} is required`);
                 return;
@@ -49,6 +48,14 @@ const validateRequestBody = (rules) => {
     };
 };
 const isPresent = (value) => value !== undefined && value !== null && value !== "";
+const getValueFromNestedObject = (obj, path) => {
+    const keys = path.replace(/\[(\d+)\]/g, '.$1').split('.');
+    let result = obj;
+    for (const key of keys) {
+        result = result ? result[key] : undefined;
+    }
+    return result;
+};
 const validateType = (key, value, type, errors) => {
     var _a;
     const typeValidators = {
@@ -100,7 +107,19 @@ const validateValue = (key, value, type, { min, max, regex, customValidator }, e
         }
     }
     if (!errors.length) {
-        validatedData[key] = value;
+        setValueInNestedObject(validatedData, key, value);
     }
+};
+const setValueInNestedObject = (obj, path, value) => {
+    const keys = path.replace(/\[(\d+)\]/g, '.$1').split('.');
+    let current = obj;
+    for (let i = 0; i < keys.length - 1; i++) {
+        const key = keys[i];
+        if (!current[key]) {
+            current[key] = isNaN(Number(keys[i + 1])) ? {} : [];
+        }
+        current = current[key];
+    }
+    current[keys[keys.length - 1]] = value;
 };
 export default validateRequestBody;

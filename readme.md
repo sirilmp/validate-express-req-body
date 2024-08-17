@@ -130,21 +130,95 @@ export default createUserRules;
 
 ```
 
+## Advanced Features
+
+- __Nested Key Support__: Validate deeply nested object properties using dot notation. For example, to validate the `name` property inside the `profile` object which is nested within `user`, you can use `user.profile.name`.
+- **Array Indexing**: Validate specific elements within arrays using bracket notation. For instance, to validate the first element of the `contacts` array, use `contacts[0]`. Also you can use like this `user.contacts[0].value`
+
+### Example
+Consider the following request body:
+
+```json
+{
+  "user": {
+    "profile": {
+      "name": "John Doe",
+      "age": 30
+    },
+    "contacts": [
+      {
+        "type": "email",
+        "value": "john.doe@example.com"
+      },
+      {
+        "type": "phone",
+        "value": "123-456-7890"
+      }
+    ]
+  }
+}
+
+```
+
+You can define rules for this structure like so:
+
+```javascript
+const rules = [
+  {
+    key: 'user.profile.name',
+    type: 'string',
+    required: true,
+    min: 3,
+    max: 50,
+  },
+  {
+    key: 'user.profile.age',
+    type: 'number',
+    required: true,
+    min: 18,
+    max: 120,
+  },
+  {
+    key: 'user.contacts',
+    type: 'array',
+    required: true,
+    min: 1,
+  },
+  {
+    key: 'user.contacts[0]',
+    type: 'object',
+    required: true,
+  },
+  {
+    key: 'user.contacts[0].type',
+    type: 'string',
+    required: true,
+  },
+  {
+    key: 'user.contacts[0].value',
+    type: 'string',
+    required: true,
+  },
+];
+
+```
+
+
 ## Rule Definition
 
 Each rule in the `rules` array is an object with the following properties:
 
 - `key` (string, required): The key to validate in the request body.
 - type (string, required): The expected data type. Supported types:
-- `string`
-- `number`
-- `boolean`
-- `array`
-- `object`
-- `email`
-- `custom-regex`
-- `custom-function`
-- `required` (boolean, optional): Whether the key is required in the request body. Defaults to false.
+    - `string`
+    - `number`
+    - `boolean`
+    - `array`
+    - `object`
+    - `email`
+    - `custom-regex`
+    - `custom-function`
+    - `required` (boolean, optional): Whether the key is required in the request body. Defaults to false.
 - `min` (number, optional): The minimum length (for strings/arrays) or value (for numbers).
 - `max` (number, optional): The maximum length (for strings/arrays) or value (for numbers).
 - `regex` (RegExp, optional): A regular expression that the value must match (for strings).

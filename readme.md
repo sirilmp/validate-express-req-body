@@ -208,21 +208,16 @@ const rules = [
 
 Each rule in the `rules` array is an object with the following properties:
 
-- `key` (string, required): The key to validate in the request body.
-- type (string, required): The expected data type. Supported types:
-    - `string`
-    - `number`
-    - `boolean`
-    - `array`
-    - `object`
-    - `email`
-    - `custom-regex`
-    - `custom-function`
-    - `required` (boolean, optional): Whether the key is required in the request body. Defaults to false.
-- `min` (number, optional): The minimum length (for strings/arrays) or value (for numbers).
-- `max` (number, optional): The maximum length (for strings/arrays) or value (for numbers).
-- `regex` (RegExp, optional): A regular expression that the value must match (for strings).
-- `customValidator` (Function, optional): A custom validation function that returns an error message if validation fails.
+| **Property**        | **Type**                     | **Description**                                                                                         | **Required** | **Default** |
+|---------------------|------------------------------|---------------------------------------------------------------------------------------------------------|--------------|-------------|
+| `key`               | `string`                     | The key to validate in the request body.                                                                | Yes          | -           |
+| `type`              | `string`                     | The expected data type. Supported types: `string`, `number`, `boolean`, `array`, `object`, `email`, `custom-regex`, `custom-function`. | Yes          | -           |
+| `required`          | `boolean`                    | Whether the key is required in the request body.                                                        | No           | `false`     |
+| `min`               | `number`                     | The minimum length (for strings/arrays) or value (for numbers).                                          | No           | -           |
+| `max`               | `number`                     | The maximum length (for strings/arrays) or value (for numbers).                                          | No           | -           |
+| `regex`             | `RegExp`                     | A regular expression that the value must match (for strings).                                            | No           | -           |
+| `customValidator`   | `Function`                   | A custom validation function that returns an error message if validation fails.                         | No           | -           |
+
 
 ## Custom Validation
 

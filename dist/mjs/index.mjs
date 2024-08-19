@@ -22,7 +22,13 @@ const validateRequestBody = (rules) => {
         }
         rules.forEach((rule) => {
             const { key, type, required = false, min, max, regex, customValidator, } = rule;
+            // Validate key is a non-empty string
+            if (typeof key !== "string" || key.trim() === "") {
+                errors.push(`Key "${key}" must be a non-empty string`);
+                return;
+            }
             const types = Array.isArray(type) ? type : [type];
+            // Validate allowed types
             types.forEach((t) => {
                 if (!ALLOWED_TYPES.includes(t)) {
                     errors.push(`${t} is not a valid type. Allowed types are ${ALLOWED_TYPES.join(", ")}`);
@@ -82,8 +88,15 @@ const validateValue = (key, value, types, { min, max, regex, customValidator }, 
     types.forEach((type) => {
         const minValue = typeof min === "number" ? min : min === null || min === void 0 ? void 0 : min[type];
         const maxValue = typeof max === "number" ? max : max === null || max === void 0 ? void 0 : max[type];
-        if (type === "string" &&
-            typeof value === "string") {
+        if (minValue !== undefined && (typeof minValue !== "number" || minValue < 0)) {
+            errors.push(`Minimum value for ${key} must be a non-negative number`);
+            isValid = false;
+        }
+        if (maxValue !== undefined && (typeof maxValue !== "number" || maxValue < 0)) {
+            errors.push(`Maximum value for ${key} must be a non-negative number`);
+            isValid = false;
+        }
+        if (type === "string" && typeof value === "string") {
             if (minValue !== undefined && value.length < minValue) {
                 errors.push(`${key} type is ${type}, it should be at least ${minValue} characters`);
                 isValid = false;
@@ -93,8 +106,7 @@ const validateValue = (key, value, types, { min, max, regex, customValidator }, 
                 isValid = false;
             }
         }
-        if (type === "number" &&
-            typeof value === "number") {
+        if (type === "number" && typeof value === "number") {
             if (minValue !== undefined && value < minValue) {
                 errors.push(`${key} type is ${type}, it should be at least ${minValue}`);
                 isValid = false;

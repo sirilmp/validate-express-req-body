@@ -88,7 +88,7 @@ const app = express();
 app.use(express.json());
 
 app.post("/create-user", validateRequestBody(createUserRules), (req, res) => {
-  res.send("Request is valid!");
+   res.status(200).json({req_body:req.body});
 });
 
 app.listen(3000, () => {

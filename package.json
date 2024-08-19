@@ -24,7 +24,7 @@
     "type": "git",
     "url": "git+https://github.com/sirilmp/validate-express-req-body.git"
   },
-  "homepage": "https://github.com/sirilmp/validate-express-req-body",
+  "homepage": "https://validate-express-req-body.vercel.app/docs",
   "keywords": [
     "middleware",
     "express",

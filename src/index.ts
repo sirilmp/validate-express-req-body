@@ -15,18 +15,10 @@ const ALLOWED_TYPES = [
 
 interface ValidationRule {
   key: string;
-  type:
-    | "string"
-    | "number"
-    | "boolean"
-    | "array"
-    | "object"
-    | "email"
-    | "custom-regex"
-    | "custom-function";
+  type: string | string[];
   required?: boolean;
-  min?: number;
-  max?: number;
+  min?: number | { [key: string]: number };
+  max?: number | { [key: string]: number };
   regex?: RegExp;
   customValidator?: (value: any) => string | null;
 }
@@ -55,10 +47,14 @@ const validateRequestBody = (rules: ValidationRule[]) => {
         customValidator,
       } = rule;
 
-      if (!ALLOWED_TYPES.includes(type)) {
-        errors.push(`${type} is not a valid type. Allowed types are ${ALLOWED_TYPES}`);
-        return;
-      }
+      const types = Array.isArray(type) ? type : [type];
+
+      types.forEach((t) => {
+        if (!ALLOWED_TYPES.includes(t)) {
+          errors.push(`${t} is not a valid type. Allowed types are ${ALLOWED_TYPES.join(", ")}`);
+          return;
+        }
+      });
 
       const value = getValueFromNestedObject(req.body, key);
 
@@ -69,16 +65,18 @@ const validateRequestBody = (rules: ValidationRule[]) => {
 
       if (!isPresent(value)) return;
 
-      if (!validateType(key, value, type, errors)) return;
+      if (!validateType(key, value, types, errors)) return;
 
       validateValue(
         key,
         value,
-        type,
+        types,
         { min, max, regex, customValidator },
         errors,
         validatedData
       );
+
+      
     });
 
     if (errors.length > 0) {
@@ -108,7 +106,7 @@ const getValueFromNestedObject = (obj: any, path: string) => {
 const validateType = (
   key: string,
   value: any,
-  type: string,
+  types: string[],
   errors: string[]
 ): boolean => {
   const typeValidators: { [key: string]: (val: any) => boolean } = {
@@ -123,8 +121,10 @@ const validateType = (
     "custom-function": () => true,
   };
 
-  if (!typeValidators[type]?.(value)) {
-    errors.push(`${key} should be a valid ${type}`);
+  const isValid = types.some((t) => typeValidators[t]?.(value));
+
+  if (!isValid) {
+    errors.push(`${key} should be a valid ${types.join(" or ")}`);
     return false;
   }
 
@@ -132,60 +132,79 @@ const validateType = (
 };
 
 const validateValue = (
-  key: string,
-  value: any,
-  type: string,
-  { min, max, regex, customValidator }: Partial<ValidationRule>,
-  errors: string[],
-  validatedData: { [key: string]: any }
-) => {
-  if (
-    (type === "string" || type === "array") &&
-    min !== undefined &&
-    value.length < min
-  ) {
-    const message =
-      type === "string"
-        ? `${key} should have at least ${min} characters`
-        : `${key} should have at least ${min} items`;
-    errors.push(message);
-  }
+    key: string,
+    value: any,
+    types: string[],
+    { min, max, regex, customValidator }: Partial<ValidationRule>,
+    errors: string[],
+    validatedData: { [key: string]: any }
+  ) => {
+    let isValid = true;
+  
+    types.forEach((type) => {
+      const minValue = typeof min === "number" ? min : min?.[type];
+      const maxValue = typeof max === "number" ? max : max?.[type];
+  
+      if (
+        type === "string" &&
+        typeof value === "string"
+      ) {
+        if (minValue !== undefined && value.length < minValue) {
+          errors.push(`${key} type is ${type}, it should be at least ${minValue} characters`);
+          isValid = false;
+        }
+        if (maxValue !== undefined && value.length > maxValue) {
+          errors.push(`${key} type is ${type}, it should be at most ${maxValue} characters`);
+          isValid = false;
+        }
+      }
+  
+      if (
+        type === "number" &&
+        typeof value === "number"
+      ) {
+        if (minValue !== undefined && value < minValue) {
+          errors.push(`${key} type is ${type}, it should be at least ${minValue}`);
+          isValid = false;
+        }
+        if (maxValue !== undefined && value > maxValue) {
+          errors.push(`${key} type is ${type}, it should be at most ${maxValue}`);
+          isValid = false;
+        }
+      }
 
-  if (
-    (type === "string" || type === "array") &&
-    max !== undefined &&
-    value.length > max
-  ) {
-    const message =
-      type === "string"
-        ? `${key} should have at most ${max} characters`
-        : `${key} should have at most ${max} items`;
-    errors.push(message);
-  }
+      if (type === "array" && Array.isArray(value)) {
+        if (minValue !== undefined && value.length < minValue) {
+          errors.push(`${key} type is ${type}, it should be at least ${minValue} items`);
+          isValid = false;
+        }
+        if (maxValue !== undefined && value.length > maxValue) {
+          errors.push(`${key} type is ${type}, it should be at most ${maxValue} items`);
+          isValid = false;
+        }
+      }
+      
+    });
 
-  if (type === "number" && min !== undefined && value < min) {
-    errors.push(`${key} should be at least ${min}`);
-  }
 
-  if (type === "number" && max !== undefined && value > max) {
-    errors.push(`${key} should be at most ${max}`);
-  }
-
-  if (type === "custom-regex" && regex && !regex.test(value)) {
-    errors.push(`${key} is invalid`);
-  }
-
-  if (customValidator && typeof customValidator === "function") {
-    const customError = customValidator(value);
-    if (customError) {
-      errors.push(customError);
+  
+    if (isValid && types.includes("custom-regex") && regex && !regex.test(value)) {
+      errors.push(`${key} is invalid`);
+      isValid = false;
     }
-  }
-
-  if (!errors.length) {
-    setValueInNestedObject(validatedData, key, value);
-  }
-};
+  
+    if (isValid && customValidator && typeof customValidator === "function") {
+      const customError = customValidator(value);
+      if (customError) {
+        errors.push(customError);
+        isValid = false;
+      }
+    }
+  
+    if (isValid && errors.length === 0) {
+      setValueInNestedObject(validatedData, key, value);
+    }
+  };
 
 const setValueInNestedObject = (obj: any, path: string, value: any) => {
   const keys = path.replace(/\[(\d+)\]/g, '.$1').split('.');

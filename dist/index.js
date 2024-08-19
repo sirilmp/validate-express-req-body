@@ -22,10 +22,13 @@ const validateRequestBody = (rules) => {
         }
         rules.forEach((rule) => {
             const { key, type, required = false, min, max, regex, customValidator, } = rule;
-            if (!ALLOWED_TYPES.includes(type)) {
-                errors.push(`${type} is not a valid type. Allowed types are ${ALLOWED_TYPES}`);
-                return;
-            }
+            const types = Array.isArray(type) ? type : [type];
+            types.forEach((t) => {
+                if (!ALLOWED_TYPES.includes(t)) {
+                    errors.push(`${t} is not a valid type. Allowed types are ${ALLOWED_TYPES.join(", ")}`);
+                    return;
+                }
+            });
             const value = getValueFromNestedObject(req.body, key);
             if (required && !isPresent(value)) {
                 errors.push(`${key} is required`);
@@ -33,9 +36,9 @@ const validateRequestBody = (rules) => {
             }
             if (!isPresent(value))
                 return;
-            if (!validateType(key, value, type, errors))
+            if (!validateType(key, value, types, errors))
                 return;
-            validateValue(key, value, type, { min, max, regex, customValidator }, errors, validatedData);
+            validateValue(key, value, types, { min, max, regex, customValidator }, errors, validatedData);
         });
         if (errors.length > 0) {
             return res.status(HTTP_STATUS_BAD_REQUEST).json({
@@ -56,8 +59,7 @@ const getValueFromNestedObject = (obj, path) => {
     }
     return result;
 };
-const validateType = (key, value, type, errors) => {
-    var _a;
+const validateType = (key, value, types, errors) => {
     const typeValidators = {
         string: (val) => typeof val === "string",
         number: (val) => typeof val === "number",
@@ -68,45 +70,63 @@ const validateType = (key, value, type, errors) => {
         "custom-regex": () => true,
         "custom-function": () => true,
     };
-    if (!((_a = typeValidators[type]) === null || _a === void 0 ? void 0 : _a.call(typeValidators, value))) {
-        errors.push(`${key} should be a valid ${type}`);
+    const isValid = types.some((t) => { var _a; return (_a = typeValidators[t]) === null || _a === void 0 ? void 0 : _a.call(typeValidators, value); });
+    if (!isValid) {
+        errors.push(`${key} should be a valid ${types.join(" or ")}`);
         return false;
     }
     return true;
 };
-const validateValue = (key, value, type, { min, max, regex, customValidator }, errors, validatedData) => {
-    if ((type === "string" || type === "array") &&
-        min !== undefined &&
-        value.length < min) {
-        const message = type === "string"
-            ? `${key} should have at least ${min} characters`
-            : `${key} should have at least ${min} items`;
-        errors.push(message);
-    }
-    if ((type === "string" || type === "array") &&
-        max !== undefined &&
-        value.length > max) {
-        const message = type === "string"
-            ? `${key} should have at most ${max} characters`
-            : `${key} should have at most ${max} items`;
-        errors.push(message);
-    }
-    if (type === "number" && min !== undefined && value < min) {
-        errors.push(`${key} should be at least ${min}`);
-    }
-    if (type === "number" && max !== undefined && value > max) {
-        errors.push(`${key} should be at most ${max}`);
-    }
-    if (type === "custom-regex" && regex && !regex.test(value)) {
+const validateValue = (key, value, types, { min, max, regex, customValidator }, errors, validatedData) => {
+    let isValid = true;
+    types.forEach((type) => {
+        const minValue = typeof min === "number" ? min : min === null || min === void 0 ? void 0 : min[type];
+        const maxValue = typeof max === "number" ? max : max === null || max === void 0 ? void 0 : max[type];
+        if (type === "string" &&
+            typeof value === "string") {
+            if (minValue !== undefined && value.length < minValue) {
+                errors.push(`${key} type is ${type}, it should be at least ${minValue} characters`);
+                isValid = false;
+            }
+            if (maxValue !== undefined && value.length > maxValue) {
+                errors.push(`${key} type is ${type}, it should be at most ${maxValue} characters`);
+                isValid = false;
+            }
+        }
+        if (type === "number" &&
+            typeof value === "number") {
+            if (minValue !== undefined && value < minValue) {
+                errors.push(`${key} type is ${type}, it should be at least ${minValue}`);
+                isValid = false;
+            }
+            if (maxValue !== undefined && value > maxValue) {
+                errors.push(`${key} type is ${type}, it should be at most ${maxValue}`);
+                isValid = false;
+            }
+        }
+        if (type === "array" && Array.isArray(value)) {
+            if (minValue !== undefined && value.length < minValue) {
+                errors.push(`${key} type is ${type}, it should be at least ${minValue} items`);
+                isValid = false;
+            }
+            if (maxValue !== undefined && value.length > maxValue) {
+                errors.push(`${key} type is ${type}, it should be at most ${maxValue} items`);
+                isValid = false;
+            }
+        }
+    });
+    if (isValid && types.includes("custom-regex") && regex && !regex.test(value)) {
         errors.push(`${key} is invalid`);
+        isValid = false;
     }
-    if (customValidator && typeof customValidator === "function") {
+    if (isValid && customValidator && typeof customValidator === "function") {
         const customError = customValidator(value);
         if (customError) {
             errors.push(customError);
+            isValid = false;
         }
     }
-    if (!errors.length) {
+    if (isValid && errors.length === 0) {
         setValueInNestedObject(validatedData, key, value);
     }
 };

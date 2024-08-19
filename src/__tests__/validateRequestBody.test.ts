@@ -76,7 +76,7 @@ describe("validateRequestBody Middleware", () => {
     expect(mockResponse.status).toHaveBeenCalledWith(400);
     expect(mockResponse.json).toHaveBeenCalledWith({
       status: 400,
-      message: ["name should have at least 3 characters"],
+      message: ["name type is string, it should be at least 3 characters"],
     });
   });
 
@@ -92,7 +92,7 @@ describe("validateRequestBody Middleware", () => {
     expect(mockResponse.status).toHaveBeenCalledWith(400);
     expect(mockResponse.json).toHaveBeenCalledWith({
       status: 400,
-      message: ["name should have at most 5 characters"],
+      message: ["name type is string, it should be at most 5 characters"],
     });
   });
 
@@ -108,7 +108,7 @@ describe("validateRequestBody Middleware", () => {
     expect(mockResponse.status).toHaveBeenCalledWith(400);
     expect(mockResponse.json).toHaveBeenCalledWith({
       status: 400,
-      message: ["age should be at least 18"],
+      message: ["age type is number, it should be at least 18"],
     });
   });
 
@@ -124,7 +124,7 @@ describe("validateRequestBody Middleware", () => {
     expect(mockResponse.status).toHaveBeenCalledWith(400);
     expect(mockResponse.json).toHaveBeenCalledWith({
       status: 400,
-      message: ["age should be at most 18"],
+      message: ["age type is number, it should be at most 18"],
     });
   });
 
@@ -140,7 +140,7 @@ describe("validateRequestBody Middleware", () => {
     expect(mockResponse.status).toHaveBeenCalledWith(400);
     expect(mockResponse.json).toHaveBeenCalledWith({
       status: 400,
-      message: ["hobbies should have at least 1 items"],
+      message: ["hobbies type is array, it should be at least 1 items"],
     });
   });
 
@@ -156,7 +156,7 @@ describe("validateRequestBody Middleware", () => {
     expect(mockResponse.status).toHaveBeenCalledWith(400);
     expect(mockResponse.json).toHaveBeenCalledWith({
       status: 400,
-      message: ["hobbies should have at most 2 items"],
+      message: ["hobbies type is array, it should be at most 2 items"],
     });
   });
 
@@ -213,7 +213,7 @@ describe("validateRequestBody Middleware", () => {
     expect(nextFunction).toHaveBeenCalled();
   });
 
-  test("nested key support", () => {
+  test("nested object and array key support", () => {
     mockRequest.body = {
       name: "John McExpress",
       age: {
@@ -265,7 +265,7 @@ describe("validateRequestBody Middleware", () => {
     expect(nextFunction).toHaveBeenCalled();
   });
 
-  test("nested key support", () => {
+  test("nested object key support", () => {
     mockRequest.body = {
       user: {
         profile: {
@@ -285,44 +285,130 @@ describe("validateRequestBody Middleware", () => {
       },
     };
 
-const rules = [
-  {
-    key: 'user.profile.name',
-    type: 'string' as const,
-    required: true,
-    min: 3,
-    max: 50,
-  },
-  {
-    key: 'user.profile.age',
-    type: 'number' as const,
-    required: true,
-    min: 18,
-    max: 120,
-  },
-  {
-    key: 'user.contacts',
-    type: 'array' as const,
-    required: true,
-    min: 1,
-  },
-  {
-    key: 'user.contacts[0]',
-    type: 'object' as const,
-    required: true,
-  },
-  {
-    key: 'user.contacts[0].type',
-    type: 'string' as const,
-    required: true,
-  },
-  {
-    key: 'user.contacts[0].value',
-    type: 'string' as const,
-    required: true,
-  },
-];
+    const rules = [
+      {
+        key: "user.profile.name",
+        type: "string" as const,
+        required: true,
+        min: 3,
+        max: 50,
+      },
+      {
+        key: "user.profile.age",
+        type: "number" as const,
+        required: true,
+        min: 18,
+        max: 120,
+      },
+      {
+        key: "user.contacts",
+        type: "array" as const,
+        required: true,
+        min: 1,
+      },
+      {
+        key: "user.contacts[0]",
+        type: "object" as const,
+        required: true,
+      },
+      {
+        key: "user.contacts[0].type",
+        type: "string" as const,
+        required: true,
+      },
+      {
+        key: "user.contacts[0].value",
+        type: "string" as const,
+        required: true,
+      },
+    ];
 
+    const middleware = validateRequestBody(rules);
+    middleware(mockRequest as Request, mockResponse as Response, nextFunction);
+
+    expect(nextFunction).toHaveBeenCalled();
+  });
+
+  test("support multiple types with single min and max", () => {
+    mockRequest.body = {
+      user: {
+        profile: {
+          name: "John Doe",
+          age: "30",
+        },
+      },
+    };
+
+    const rules = [
+      {
+        key: "user.profile.age",
+        type: ["number", "string"],
+        required: true,
+        min: 1,
+        max: 12,
+      },
+    ];
+
+    const middleware = validateRequestBody(rules);
+    middleware(mockRequest as Request, mockResponse as Response, nextFunction);
+
+    expect(nextFunction).toHaveBeenCalled();
+  });
+
+  test("support multiple types multiple min and single max", () => {
+    mockRequest.body = {
+      user: {
+        profile: {
+          name: "John Doe",
+          age: "30",
+        },
+      },
+    };
+
+    const rules = [
+      {
+        key: "user.profile.age",
+        type: ["number", "string"],
+        required: true,
+        min: {
+          string: 2,
+          number: 1,
+        },
+        max: 12,
+      },
+    ];
+
+    const middleware = validateRequestBody(rules);
+    middleware(mockRequest as Request, mockResponse as Response, nextFunction);
+
+    expect(nextFunction).toHaveBeenCalled();
+  });
+
+  test("support multiple types, multiple min and max", () => {
+    mockRequest.body = {
+      user: {
+        profile: {
+          name: "John Doe",
+          age: "30",
+        },
+      },
+    };
+
+    const rules = [
+      {
+        key: "user.profile.age",
+        type: ["number", "string"],
+        required: true,
+        min: {
+          string: 2,
+          number: 1,
+        },
+        max: {
+          string: 3,
+          number: 100,
+        },
+      },
+    ];
 
     const middleware = validateRequestBody(rules);
     middleware(mockRequest as Request, mockResponse as Response, nextFunction);

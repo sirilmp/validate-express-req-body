@@ -19,6 +19,7 @@ yarn add  validate-express-req-body
 ## Usage (Basic Example)
 
 ### CommonJS (CJS)
+
 If you're using CommonJS modules (e.g., with Node.js versions prior to ESM support or a setup that does not support ESM), use the following examples:
 
 ```javascript
@@ -41,7 +42,7 @@ app.listen(3000, () => {
 ```
 
 ```javascript
-//create-user.rules.js
+//rules/create-user.rules.js
 
 module.exports = [
   {
@@ -73,151 +74,79 @@ module.exports = [
 ```
 
 ### ECMAScript Modules (ESM)
+
 If you're using ECMAScript Modules (e.g., with modern Node.js versions or a setup that supports ESM), use the following examples:
 
 ```javascript
 //index.mjs
 
-import express from 'express';
-import validateRequestBody from 'validate-express-req-body';
-import createUserRules from './rules/create-user.rules.mjs';
+import express from "express";
+import validateRequestBody from "validate-express-req-body";
+import createUserRules from "./rules/create-user.rules.mjs";
 
 const app = express();
 app.use(express.json());
 
-app.post('/create-user', validateRequestBody(createUserRules), (req, res) => {
-  res.send('Request is valid!');
+app.post("/create-user", validateRequestBody(createUserRules), (req, res) => {
+  res.send("Request is valid!");
 });
 
 app.listen(3000, () => {
-  console.log('Server is running on port 3000');
+  console.log("Server is running on port 3000");
 });
-
 ```
 
 ```javascript
-//create-user.rules.mjs
+//rules/create-user.rules.mjs
 
 const createUserRules = [
   {
-    key: 'email',
-    type: 'email',
+    key: "email",
+    type: "email",
     required: true,
   },
   {
-    key: 'first_name',
-    type: 'string',
+    key: "first_name",
+    type: "string",
     required: true,
     min: 5,
     max: 15,
   },
   {
-    key: 'last_name',
-    type: 'string',
+    key: "last_name",
+    type: "string",
     required: false,
     min: 5,
     max: 15,
   },
   {
-    key: 'roles',
-    type: 'array',
+    key: "roles",
+    type: "array",
     required: true,
     min: 1,
   },
 ];
 
 export default createUserRules;
-
 ```
-
-## Advanced Features
-
-- __Nested Key Support__: Validate deeply nested object properties using dot notation. For example, to validate the `name` property inside the `profile` object which is nested within `user`, you can use `user.profile.name`.
-- **Array Indexing**: Validate specific elements within arrays using bracket notation. For instance, to validate the first element of the `contacts` array, use `contacts[0]`. Also you can use like this `user.contacts[0].value`
-
-### Example
-Consider the following request body:
-
-```json
-{
-  "user": {
-    "profile": {
-      "name": "John Doe",
-      "age": 30
-    },
-    "contacts": [
-      {
-        "type": "email",
-        "value": "john.doe@example.com"
-      },
-      {
-        "type": "phone",
-        "value": "123-456-7890"
-      }
-    ]
-  }
-}
-
-```
-
-You can define rules for this structure like so:
-
-```javascript
-const rules = [
-  {
-    key: 'user.profile.name',
-    type: 'string',
-    required: true,
-    min: 3,
-    max: 50,
-  },
-  {
-    key: 'user.profile.age',
-    type: 'number',
-    required: true,
-    min: 18,
-    max: 120,
-  },
-  {
-    key: 'user.contacts',
-    type: 'array',
-    required: true,
-    min: 1,
-  },
-  {
-    key: 'user.contacts[0]',
-    type: 'object',
-    required: true,
-  },
-  {
-    key: 'user.contacts[0].type',
-    type: 'string',
-    required: true,
-  },
-  {
-    key: 'user.contacts[0].value',
-    type: 'string',
-    required: true,
-  },
-];
-
-```
-
 
 ## Rule Definition
 
 Each rule in the `rules` array is an object with the following properties:
 
-| **Property**        | **Type**                     | **Description**                                                                                         | **Required** | **Default** |
-|---------------------|------------------------------|---------------------------------------------------------------------------------------------------------|--------------|-------------|
-| `key`               | `string`                     | The key to validate in the request body.                                                                | Yes          | -           |
-| `type`              | `string`                     | The expected data type. Supported types: `string`, `number`, `boolean`, `array`, `object`, `email`, `custom-regex`, `custom-function`. | Yes          | -           |
-| `required`          | `boolean`                    | Whether the key is required in the request body.                                                        | No           | `false`     |
-| `min`               | `number`                     | The minimum length (for strings/arrays) or value (for numbers).                                          | No           | -           |
-| `max`               | `number`                     | The maximum length (for strings/arrays) or value (for numbers).                                          | No           | -           |
-| `regex`             | `RegExp`                     | A regular expression that the value must match (for strings).                                            | No           | -           |
-| `customValidator`   | `Function`                   | A custom validation function that returns an error message if validation fails.                         | No           | -           |
+## Validation Rules
 
+The `validateRequestBody` middleware uses a set of validation rules to ensure the incoming request body meets specified criteria. Each rule is defined by the following properties:
+
+| **Property**      | **Type**               | **Description**                                                                                                                                                                                                                                                                                                                                                                        | **Required** | **Default** |
+| ----------------- | ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ | ----------- |
+| `key`             | `string`               | The key to validate in the request body.                                                                                                                                                                                                                                                                                                                                               | Yes          | -           |
+| `type`            | `string` or `string[]` | The `type` specifies the expected data type for the value. It can be one of the following supported types:<br> `string`, `number`, `boolean`, `array`, `object`, `email`, `custom-regex`, or `custom-function`.<br> You can provide a single type or an array of types. If you specify multiple types, the validation will succeed if the value matches any one of the provided types. | Yes          | -           |
+| `required`        | `boolean`              | Whether the key is required in the request body.                                                                                                                                                                                                                                                                                                                                       | No           | `false`     |
+| `min`             | `number` or `object`   | The minimum length (for strings/arrays) or value (for numbers). Can also be an object specifying different minimum values for different types.                                                                                                                                                                                                                                         | No           | -           |
+| `max`             | `number` or `object`   | The maximum length (for strings/arrays) or value (for numbers). Can also be an object specifying different maximum values for different types.                                                                                                                                                                                                                                         | No           | -           |
+| `regex`           | `RegExp`               | A regular expression that the value must match (for strings).                                                                                                                                                                                                                                                                                                                          | No           | -           |
+| `customValidator` | `Function`             | A custom validation function that returns an error message if validation fails.                                                                                                                                                                                                                                                                                                        | No           | -           |
 
 ## Custom Validation
 
@@ -236,6 +165,140 @@ You can create custom validation rules using the `customValidator` function:
   },
 ];
 ```
+
+## Advanced Features
+
+- **Nested Key Support**: Validate deeply nested object properties using dot notation. For example, to validate the `name` property inside the `profile` object which is nested within `user`, you can use `user.profile.name`.
+
+**Example**
+
+```javascript
+//req.body
+
+{
+  "user": {
+    "profile": {
+      "name": "John Doe",
+      "age": 30
+    }
+  }
+}
+
+//rule
+
+const rules = [
+  {
+    key: "user.profile.name",
+    type: "string",
+    required: true,
+    min: 3,
+    max: 50,
+  }
+]
+
+```
+
+- **Array Indexing**: Validate specific elements within arrays using bracket notation. For instance, to validate the first element of the `contacts` array, use `contacts[0]`. Also you can use like this `user.contacts[0].value`
+
+**Example**
+```javascript
+// req.body
+
+{
+"contacts": [
+      {
+        "type": "email",
+        "value": "john.doe@example.com"
+      },
+      {
+        "type": "phone",
+        "value": "123-456-7890"
+      }
+    ]
+}
+
+// rule
+
+const rules=[
+  {
+    key: "user.contacts[0]",
+    type: "object",
+    required: true,
+  },{
+    key: "user.contacts[0].type",
+    type: "string",
+    required: true,
+  },
+  {
+    key: "user.contacts[0].value",
+    type: "string",
+    required: true,
+  },
+]
+
+```
+
+- **Support Multiple Types**:
+  If you provide an array of types `(e.g., ['string', 'number'])`, the value will be considered valid if it matches any one of the specified types.
+
+**Example**
+
+  ```javascript
+//req.body
+
+{
+  "user": {
+    "profile": {
+      "name": "John Doe",
+      "age": 30
+    }
+  }
+}
+
+//rules
+
+[
+   {
+    key: "user.profile.age",
+    type: ["string", "number"],
+    required: true,
+    min: 18,
+    max: 100,
+  }
+]
+
+```
+
+- **Support Multiple Min and Max**: You can also specify `min` and `max` as objects to apply different constraints based on the data type. This is particularly useful when a field can have multiple types.
+
+**Example**
+
+  ```javascript
+//req.body
+
+{
+  "user": {
+    "profile": {
+      "name": "John Doe",
+      "age": 30
+    }
+  }
+}
+
+//rules
+
+[
+   {
+    key: "user.profile.age",
+    type: ["string", "number"],
+    required: true,
+    min: { string: 3, number: 10 },
+    max: { string: 15, number: 100 }
+  }
+]
+
+```
+
 
 ## Error Handling
 

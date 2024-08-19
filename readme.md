@@ -316,9 +316,10 @@ If the request body fails validation, the middleware responds with a status of 2
 For better organization, it is recommended to create a `rules` directory within the `src` directory. In this directory, create separate files for each set of rules, naming them according to the request they validate. For example:
 
 ```
-src /
-    rules /
-        user-registration.rules.js;
-        login.rules.js;
-        profile-update.rules.js;
+src/
+├── rules/
+│   ├── user-registration.rules.js
+│   ├── login.rules.js
+│   └── profile-update.rules.js
+
 ```

@@ -2,16 +2,16 @@ import { Request, Response, NextFunction } from "express";
 
 const HTTP_STATUS_BAD_REQUEST = 400;
 
- const ALLOWED_TYPES = [
-    "string",
-    "number",
-    "boolean",
-    "array",
-    "object",
-    "email",
-    "custom-regex",
-    "custom-function",
-  ];
+const ALLOWED_TYPES = [
+  "string",
+  "number",
+  "boolean",
+  "array",
+  "object",
+  "email",
+  "custom-regex",
+  "custom-function",
+];
 
 interface ValidationRule {
   key: string;
@@ -55,13 +55,12 @@ const validateRequestBody = (rules: ValidationRule[]) => {
         customValidator,
       } = rule;
 
-      // Validate the type
       if (!ALLOWED_TYPES.includes(type)) {
         errors.push(`${type} is not a valid type. Allowed types are ${ALLOWED_TYPES}`);
         return;
       }
 
-      const value = req?.body[key];
+      const value = getValueFromNestedObject(req.body, key);
 
       if (required && !isPresent(value)) {
         errors.push(`${key} is required`);
@@ -96,6 +95,15 @@ const validateRequestBody = (rules: ValidationRule[]) => {
 
 const isPresent = (value: any): boolean =>
   value !== undefined && value !== null && value !== "";
+
+const getValueFromNestedObject = (obj: any, path: string) => {
+  const keys = path.replace(/\[(\d+)\]/g, '.$1').split('.');
+  let result = obj;
+  for (const key of keys) {
+    result = result ? result[key] : undefined;
+  }
+  return result;
+};
 
 const validateType = (
   key: string,
@@ -175,8 +183,21 @@ const validateValue = (
   }
 
   if (!errors.length) {
-    validatedData[key] = value;
+    setValueInNestedObject(validatedData, key, value);
   }
+};
+
+const setValueInNestedObject = (obj: any, path: string, value: any) => {
+  const keys = path.replace(/\[(\d+)\]/g, '.$1').split('.');
+  let current = obj;
+  for (let i = 0; i < keys.length - 1; i++) {
+    const key = keys[i];
+    if (!current[key]) {
+      current[key] = isNaN(Number(keys[i + 1])) ? {} : [];
+    }
+    current = current[key];
+  }
+  current[keys[keys.length - 1]] = value;
 };
 
 export default validateRequestBody;

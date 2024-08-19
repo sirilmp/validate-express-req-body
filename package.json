@@ -22,7 +22,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/sirilmp/validate-express-req-body"
+    "url": "git+https://github.com/sirilmp/validate-express-req-body.git"
   },
   "homepage": "https://github.com/sirilmp/validate-express-req-body",
   "keywords": [

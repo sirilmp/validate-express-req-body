@@ -1,6 +1,9 @@
-# Express Request Body Validator Middleware
+# validate-express-req-body
 
-This package provides a flexible middleware for validating the request body in Express applications. It allows you to define validation rules for different data types, including custom validation functions and regular expressions.
+An express.js middleware for request data validation.
+
+- [Installation](https://validate-express-req-body.vercel.app/docs/#installation)
+- [Documentation](https://validate-express-req-body.vercel.app/docs)
 
 ## Installation
 
@@ -16,13 +19,28 @@ or
 yarn add  validate-express-req-body
 ```
 
+## Documentation
+
+Please visit the documentation website at [https://validate-express-req-body.vercel.app](https://validate-express-req-body.vercel.app) for more information.
+
+## License
+
+ISC license
+
+
+
+
+
+
+<!-- 
+
 ## Usage (Basic Example)
 
 ### CommonJS (CJS)
 
 If you're using CommonJS modules (e.g., with Node.js versions prior to ESM support or a setup that does not support ESM), use the following examples:
 
-```javascript
+```javascript title="index.js" showLineNumbers
 //index.js
 
 const express = require("express");
@@ -322,4 +340,4 @@ src/
 │   ├── login.rules.js
 │   └── profile-update.rules.js
 
-```
+``` -->

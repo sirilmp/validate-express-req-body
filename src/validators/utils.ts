@@ -149,3 +149,35 @@ export const setValueInNestedObject = (obj: any, path: string, value: any) => {
   }
   current[keys[keys.length - 1]] = value;
 };
+
+
+export const convertToArray = (value: string | number | string[]): (string | number)[] => {
+  // Helper function to parse a value
+  const parseValue = (item: string): string | number => {
+    const trimmedItem = item.trim();
+    // Attempt to convert to number
+    const parsedNumber = Number(trimmedItem);
+    return isNaN(parsedNumber) ? trimmedItem : parsedNumber;
+  };
+
+  // If value is a string
+  if (typeof value === 'string') {
+    // Remove surrounding brackets if present
+    const trimmedValue = value.trim();
+    const hasBrackets = trimmedValue.startsWith('[') && trimmedValue.endsWith(']');
+    const content = hasBrackets
+      ? trimmedValue.slice(1, -1)
+      : trimmedValue;
+
+    // Split by commas and parse each element
+    return content.split(',').map(parseValue);
+  }
+
+  // If value is already an array
+  if (Array.isArray(value)) {
+    return value.map(item => (typeof item === 'string' ? parseValue(item) : item));
+  }
+
+  // Wrap single value in an array and convert to string or number
+  return [parseValue(value.toString())];
+};

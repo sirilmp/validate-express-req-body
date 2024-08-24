@@ -41,6 +41,7 @@ const requestParamsValidator = (rules: ValidationRule[]) => {
       }
 
       const types = Array.isArray(type) ? type : [type];
+      let validType = true;
 
       types.forEach((t) => {
         if (!ALLOWED_TYPES.includes(t)) {
@@ -49,9 +50,12 @@ const requestParamsValidator = (rules: ValidationRule[]) => {
               ", "
             )}`
           );
-          return;
+          validType = false;
         }
       });
+
+      // Skip further validation if any type is invalid
+      if (!validType) return;
 
       let value = getValueFromNestedObject(req.params, key);
 
@@ -70,7 +74,7 @@ const requestParamsValidator = (rules: ValidationRule[]) => {
         }
       }
       if (type == "array") {
-        value = value.split(',');
+        value = value.split(",");
       }
 
       if (!validateType(key, value, types, errors)) return;

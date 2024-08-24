@@ -11,7 +11,7 @@ import {
   validateType,
 } from "./utils";
 
-const validateRequestBody = (rules: ValidationRule[]) => {
+const reqBody = (rules: ValidationRule[]) => {
   return (req: Request, res: Response, next: NextFunction) => {
     const errors: string[] = [];
     const validatedData: { [key: string]: any } = {};
@@ -41,17 +41,19 @@ const validateRequestBody = (rules: ValidationRule[]) => {
       }
 
       const types = Array.isArray(type) ? type : [type];
+      let validType = true;
 
       types.forEach((t) => {
         if (!ALLOWED_TYPES.includes(t)) {
           errors.push(
-            `${t} is not a valid type. Allowed types are ${ALLOWED_TYPES.join(
-              ", "
-            )}`
+            `${t} is not a valid type. Allowed types are ${ALLOWED_TYPES.join(", ")}`
           );
-          return;
+          validType = false;
         }
       });
+
+      // Skip further validation if any type is invalid
+      if (!validType) return;
 
       const value = getValueFromNestedObject(req.body, key);
 
@@ -83,8 +85,7 @@ const validateRequestBody = (rules: ValidationRule[]) => {
 
     req.body = validatedData;
     next();
-    return;
   };
 };
 
-export default validateRequestBody;
+export default reqBody;

@@ -9,6 +9,7 @@ import {
   getValueFromNestedObject,
   validateValue,
   validateType,
+  convertToArray,
 } from "./utils";
 
 const requestQueryValidator = (rules: ValidationRule[]) => {
@@ -37,10 +38,10 @@ const requestQueryValidator = (rules: ValidationRule[]) => {
 
       if (typeof key !== "string" || key.trim() === "") {
         errors.push(`Key "${key}" must be a non-empty string`);
-        return;
       }
 
       const types = Array.isArray(type) ? type : [type];
+      let validType = true;
 
       types.forEach((t) => {
         if (!ALLOWED_TYPES.includes(t)) {
@@ -49,9 +50,12 @@ const requestQueryValidator = (rules: ValidationRule[]) => {
               ", "
             )}`
           );
-          return;
+          validType = false;
         }
       });
+
+      // Skip further validation if any type is invalid
+      if (!validType) return;
 
       let value = getValueFromNestedObject(req.query, key);
 
@@ -69,8 +73,9 @@ const requestQueryValidator = (rules: ValidationRule[]) => {
           return;
         }
       }
+
       if (type == "array") {
-        value = Array.isArray(value) ? value : [value];
+        value = convertToArray(value);
       }
 
       if (!validateType(key, value, types, errors)) return;

@@ -1,5 +1,9 @@
 # validate-express-req-body
 
+![NPM Version](https://img.shields.io/npm/v/validate-express-req-body) ![NPM Unpacked Size](https://img.shields.io/npm/unpacked-size/validate-express-req-body)
+
+
+
 An express.js middleware for request data validation.
 
 - [Installation](https://validate-express-req-body.vercel.app/docs/#installation)

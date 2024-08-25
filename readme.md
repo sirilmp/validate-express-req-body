@@ -1,6 +1,6 @@
 # validate-express-req-body
 
-![NPM Version](https://img.shields.io/npm/v/validate-express-req-body) ![NPM Unpacked Size](https://img.shields.io/npm/unpacked-size/validate-express-req-body)
+![NPM Version](https://img.shields.io/npm/v/validate-express-req-body)
 
 
 

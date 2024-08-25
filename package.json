@@ -9,7 +9,8 @@
     "test": "jest",
     "build": "tsup src/index.ts --format cjs,esm --dts --clean",
     "build:cjs": "tsc --module CommonJS --outDir dist/cjs",
-    "build:mjs": "tsc --module ES6 --outDir dist/mjs"
+    "build:mjs": "tsc --module ES6 --outDir dist/mjs",
+    "semantic-release": "semantic-release --branches main"
   },
   "exports": {
     ".": {
@@ -42,6 +43,7 @@
     "jest": "^29.7.0",
     "ts-jest": "^29.2.4",
     "tsup": "^8.2.4",
-    "typescript": "^5.5.4"
+    "typescript": "^5.5.4",
+    "semantic-release": "^24.1.0"
   }
 }

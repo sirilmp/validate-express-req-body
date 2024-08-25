@@ -3,14 +3,14 @@ import { params } from "../../dist";
 import { HTTP_STATUS_BAD_REQUEST } from "../types/validation";
 
 // Mock implementations of utility functions
-jest.mock('../validators/utils', () => ({
+jest.mock("../validators/utils", () => ({
   isPresent: jest.fn(),
   getValueFromNestedObject: jest.fn(),
   validateType: jest.fn(),
   validateValue: jest.fn(),
 }));
 
-describe('params', () => {
+describe("params", () => {
   let req: Partial<Request>;
   let res: Partial<Response>;
   let next: NextFunction;
@@ -24,18 +24,18 @@ describe('params', () => {
     next = jest.fn();
   });
 
-  it('should return 400 if rules are not properly defined', () => {
+  it("should return 400 if rules are not properly defined", () => {
     const middleware = params(null as any);
     middleware(req as Request, res as Response, next);
     expect(res.status).toHaveBeenCalledWith(HTTP_STATUS_BAD_REQUEST);
     expect(res.json).toHaveBeenCalledWith({
       status: HTTP_STATUS_BAD_REQUEST,
-      message: ['Validation rules are not properly defined.'],
+      message: ["Validation rules are not properly defined."],
     });
   });
 
-  it('should return errors for invalid key type', () => {
-    const middleware = params([{ key: '', type: 'string' }]);
+  it("should return errors for invalid key type", () => {
+    const middleware = params([{ key: "", type: "string" }]);
     middleware(req as Request, res as Response, next);
     expect(res.status).toHaveBeenCalledWith(HTTP_STATUS_BAD_REQUEST);
     expect(res.json).toHaveBeenCalledWith({
@@ -44,18 +44,46 @@ describe('params', () => {
     });
   });
 
-  it('should return errors for invalid types', () => {
+  it("should return errors for invalid types", () => {
     const middleware = params([
-      { key: 'age', type: 'invalid-type', required: true },
+      { key: "age", type: "invalid-type", required: true },
     ]);
     middleware(req as Request, res as Response, next);
     expect(res.status).toHaveBeenCalledWith(HTTP_STATUS_BAD_REQUEST);
     expect(res.json).toHaveBeenCalledWith({
       status: HTTP_STATUS_BAD_REQUEST,
       message: [
-        'invalid-type is not a valid type. Allowed types are string, number, boolean, array, object, email, custom-regex, custom-function',
+        "invalid-type is not a valid type. Allowed types are string, number, boolean, array, object, email, url, custom-regex, custom-function",
       ],
     });
   });
-});
 
+  it("should return url is invalid", () => {
+    req.params = { website: "not-a-valid-url" };
+    const middleware = params([
+      {
+        key: "website",
+        type: "url",
+      },
+    ]);
+    middleware(req as Request, res as Response, next);
+    expect(res.status).toHaveBeenCalledWith(HTTP_STATUS_BAD_REQUEST);
+    expect(res.json).toHaveBeenCalledWith({
+      status: HTTP_STATUS_BAD_REQUEST,
+      message: ["website should be a valid url"],
+    });
+  });
+
+  it("return the params object", () => {
+    req.params = { website: "https://test.com" };
+    const middleware = params([
+      {
+        key: "website",
+        type: "url",
+      },
+    ]);
+    middleware(req as Request, res as Response, next);
+    expect(req.params).toEqual({ website: "https://test.com" });
+    expect(next).toHaveBeenCalled();
+  });
+});

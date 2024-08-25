@@ -7,6 +7,7 @@ export const ALLOWED_TYPES = [
   "array",
   "object",
   "email",
+  "url",
   "custom-regex",
   "custom-function",
 ];

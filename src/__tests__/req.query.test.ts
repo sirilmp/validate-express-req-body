@@ -46,7 +46,7 @@ describe("query", () => {
     expect(res.json).toHaveBeenCalledWith({
       status: HTTP_STATUS_BAD_REQUEST,
       message: [
-        "invalid-type is not a valid type. Allowed types are string, number, boolean, array, object, email, custom-regex, custom-function",
+        "invalid-type is not a valid type. Allowed types are string, number, boolean, array, object, email, url, custom-regex, custom-function",
       ],
     });
   });
@@ -80,9 +80,7 @@ describe("query", () => {
 
   it("should return errors for missing required parameters", () => {
     req.query = {};
-    const middleware = query([
-      { key: "name", type: "string", required: true },
-    ]);
+    const middleware = query([{ key: "name", type: "string", required: true }]);
     middleware(req as Request, res as Response, next);
     expect(res.status).toHaveBeenCalledWith(HTTP_STATUS_BAD_REQUEST);
     expect(res.json).toHaveBeenCalledWith({
@@ -125,5 +123,34 @@ describe("query", () => {
       message: ["Email is invalid"],
     });
     expect(next).not.toHaveBeenCalled();
+  });
+
+  it("should return url is invalid", () => {
+    req.query = { website: "not-a-valid-url" };
+    const middleware = query([
+      {
+        key: "website",
+        type: "url",
+      },
+    ]);
+    middleware(req as Request, res as Response, next);
+    expect(res.status).toHaveBeenCalledWith(HTTP_STATUS_BAD_REQUEST);
+    expect(res.json).toHaveBeenCalledWith({
+      status: HTTP_STATUS_BAD_REQUEST,
+      message: ["website should be a valid url"],
+    });
+  });
+
+  it("return the params object", () => {
+    req.query = { website: "https://test.com" };
+    const middleware = query([
+      {
+        key: "website",
+        type: "url",
+      },
+    ]);
+    middleware(req as Request, res as Response, next);
+    expect(req.query).toEqual({ website: "https://test.com" });
+    expect(next).toHaveBeenCalled();
   });
 });

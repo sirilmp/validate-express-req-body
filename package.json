@@ -27,7 +27,10 @@
     "middleware",
     "express",
     "validation",
-    "body"
+    "request",
+    "body",
+    "params",
+    "query"
   ],
   "author": {
     "name": "Siril M Philip",

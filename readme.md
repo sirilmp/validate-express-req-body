@@ -27,9 +27,12 @@ yarn add  validate-express-req-body
 
 Please visit the documentation website at [https://validate-express-req-body.vercel.app](https://validate-express-req-body.vercel.app) for more information.
 
+## Changelog
+Check the [GitHub Releases page](https://github.com/sirilmp/validate-express-req-body/releases).
+
 ## License
 
-ISC license
+MIT license
 
 
 

@@ -27,6 +27,8 @@
     "middleware",
     "express",
     "validation",
+    "validate",
+    "node",
     "request",
     "body",
     "params",
@@ -37,7 +39,7 @@
     "email": "sirilmp.online@gmail.com",
     "url": "sirilmphilip.online"
   },
-  "license": "ISC",
+  "license": "MIT",
   "devDependencies": {
     "@types/express": "^4.17.21",
     "@types/jest": "^29.5.12",

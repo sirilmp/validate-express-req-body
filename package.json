@@ -1,6 +1,6 @@
 {
   "name": "validate-express-req-body",
-  "version": "1.3.4",
+  "version": "1.3.5",
   "description": "Middleware to validate the request body based on provided validation rules",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
